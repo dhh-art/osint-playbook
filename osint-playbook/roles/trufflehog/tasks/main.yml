@@ -1,4 +1,23 @@
+- name: Ensure python3-venv is installed
+  apt:
+    name: python3-venv
+    state: present
+  become: true
 
-- name: Install TruffleHog via pip
-  pip:
-    name: truffleHog
+- name: Create virtual environment for TruffleHog
+  command: python3 -m venv /opt/osint/trufflehog-venv
+  args:
+    creates: /opt/osint/trufflehog-venv
+
+- name: Upgrade pip inside venv
+  command: /opt/osint/trufflehog-venv/bin/pip install --upgrade pip
+
+- name: Install TruffleHog inside venv
+  command: /opt/osint/trufflehog-venv/bin/pip install trufflehog
+
+- name: Create symlink for trufflehog CLI
+  file:
+    src: /opt/osint/trufflehog-venv/bin/trufflehog
+    dest: /usr/local/bin/trufflehog
+    state: link
+  become: true
