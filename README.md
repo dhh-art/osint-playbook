@@ -13,5 +13,5 @@
 1. *Склонуйте репозиторій або збережіть файли:*
 
 ```bash
-git clone https://github.com/toquzu/osint-playbook.git
+git clone https://github.com/dhh-art/osint-playbook.git
 cd osint-playbook
