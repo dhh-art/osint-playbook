@@ -1,4 +1,20 @@
+- name: Ensure python3-venv is installed
+  apt:
+    name: python3-venv
+    state: present
+  become: true
 
-- name: Install Shodan CLI via pip
-  pip:
-    name: shodan
+- name: Create virtual environment for Shodan
+  command: python3 -m venv /opt/osint/shodan-venv
+  args:
+    creates: /opt/osint/shodan-venv
+
+- name: Install Shodan CLI in venv
+  command: /opt/osint/shodan-venv/bin/pip install shodan
+
+- name: Create symlink for shodan command (optional)
+  file:
+    src: /opt/osint/shodan-venv/bin/shodan
+    dest: /usr/local/bin/shodan
+    state: link
+  become: true
