@@ -1,9 +1,18 @@
-
 - name: Clone theHarvester
   git:
     repo: 'https://github.com/laramies/theHarvester.git'
     dest: /opt/osint/theHarvester
 
-- name: Install theHarvester dependencies
-  pip:
-    requirements: /opt/osint/theHarvester/requirements.txt
+- name: Ensure venv is installed
+  apt:
+    name: python3-venv
+    state: present
+  become: true
+
+- name: Create Python virtual environment
+  command: python3 -m venv /opt/osint/theHarvester/venv
+  args:
+    creates: /opt/osint/theHarvester/venv
+
+- name: Install theHarvester dependencies in virtualenv
+  command: /opt/osint/theHarvester/venv/bin/pip install -r /opt/osint/theHarvester/requirements.txt
