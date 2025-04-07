@@ -21,3 +21,11 @@
     dest: /usr/local/bin/trufflehog
     state: link
   become: true
+
+- name: Check TruffleHog version
+  command: trufflehog --version
+  register: trufflehog_version
+
+- name: Show version
+  debug:
+    var: trufflehog_version.stdout
