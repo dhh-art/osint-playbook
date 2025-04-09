@@ -1,6 +1,6 @@
 ---
 - name: Setup Shodan CLI on Ubuntu (local & AWS)
-  hosts: all
+  hosts: aws
   become: true
   vars:
     venv_path: "/opt/osint/shodan-venv"
