@@ -15,3 +15,6 @@
 ```bash
 git clone https://github.com/dhh-art/osint-playbook.git
 cd osint-playbook
+2.*Зясування які інструменти є в репозіторії:*
+```bash
+apt-cache policy amass theharvester subfinder shodan trufflehog
