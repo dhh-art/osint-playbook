@@ -1,18 +1,42 @@
-- name: Clone theHarvester
-  git:
-    repo: 'https://github.com/laramies/theHarvester.git'
-    dest: /opt/osint/theHarvester
-
-- name: Ensure venv is installed
-  apt:
-    name: python3-venv
-    state: present
+---
+- name: Install and configure theHarvester
+  hosts: all
   become: true
+  vars:
+    theharvester_path: "/opt/osint/theHarvester"
+    venv_path: "{{ theharvester_path }}/venv"
 
-- name: Create Python virtual environment
-  command: python3 -m venv /opt/osint/theHarvester/venv
-  args:
-    creates: /opt/osint/theHarvester/venv
+  tasks:
+    - name: Install dependencies for theHarvester
+      apt:
+        name:
+          - git
+          - python3
+          - python3-pip
+          - python3-venv
+        state: present
+        update_cache: true
 
-- name: Install theHarvester dependencies in virtualenv
-  command: /opt/osint/theHarvester/venv/bin/pip install -r /opt/osint/theHarvester/requirements.txt
+    - name: Clone theHarvester repository
+      git:
+        repo: 'https://github.com/laramies/theHarvester.git'
+        dest: "{{ theharvester_path }}"
+        clone: yes
+        update: yes
+
+    - name: Create Python virtual environment for theHarvester
+      command: python3 -m venv {{ venv_path }}
+      args:
+        creates: "{{ venv_path }}"
+
+    - name: Install theHarvester dependencies in virtualenv
+      command: "{{ venv_path }}/bin/pip install -r {{ theharvester_path }}/requirements.txt"
+    
+    - name: Check if theHarvester is installed correctly
+      command: "{{ venv_path }}/bin/theHarvester -h"
+      register: theharvester_version
+      changed_when: false
+
+    - name: Display theHarvester version info
+      debug:
+        var: theharvester_version.stdout
