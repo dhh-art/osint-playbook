@@ -1,20 +1,54 @@
-- name: Ensure python3-venv is installed
-  apt:
-    name: python3-venv
-    state: present
+---
+- name: Setup Shodan CLI on Ubuntu (local & AWS)
+  hosts: all
   become: true
+  vars:
+    venv_path: "/opt/osint/shodan-venv"
+    shodan_bin: "{{ venv_path }}/bin/shodan"
+    shodan_api_key: "{{ lookup('env', 'SHODAN_API_KEY') }}"  # lepiej przez zmienną środowiskową
 
-- name: Create virtual environment for Shodan
-  command: python3 -m venv /opt/osint/shodan-venv
-  args:
-    creates: /opt/osint/shodan-venv
+  tasks:
+    - name: Ensure python3-venv is installed
+      apt:
+        name: python3-venv
+        state: present
+        update_cache: true
 
-- name: Install Shodan CLI in venv
-  command: /opt/osint/shodan-venv/bin/pip install shodan
+    - name: Create directory for virtualenv (if not exists)
+      file:
+        path: "{{ venv_path }}"
+        state: directory
+        mode: '0755'
 
-- name: Create symlink for shodan command (optional)
-  file:
-    src: /opt/osint/shodan-venv/bin/shodan
-    dest: /usr/local/bin/shodan
-    state: link
-  become: true
+    - name: Create virtual environment for Shodan
+      command: python3 -m venv {{ venv_path }}
+      args:
+        creates: "{{ venv_path }}/bin/activate"
+
+    - name: Upgrade pip in virtualenv
+      command: "{{ venv_path }}/bin/pip install --upgrade pip"
+
+    - name: Install Shodan CLI in venv
+      command: "{{ venv_path }}/bin/pip install shodan"
+
+    - name: Create symlink for shodan command
+      file:
+        src: "{{ shodan_bin }}"
+        dest: /usr/local/bin/shodan
+        state: link
+        force: true
+
+    - name: Initialize Shodan CLI with API key
+      command: "{{ shodan_bin }} init {{ shodan_api_key }}"
+      environment:
+        SHODAN_API_KEY: "{{ shodan_api_key }}"
+      register: shodan_init
+      changed_when: "'successfully initialized' in shodan_init.stdout or shodan_init.stderr"
+
+    - name: Show Shodan account info (test if working)
+      command: "{{ shodan_bin }} info"
+      register: shodan_info
+
+    - name: Print Shodan info
+      debug:
+        var: shodan_info.stdout
