@@ -1,12 +1,19 @@
+---
+- name: Install and configure Subfinder via apt
+  hosts: all
+  become: true
+  tasks:
+    - name: Install Subfinder via apt
+      apt:
+        name: subfinder
+        state: present
+        update_cache: true
 
-- name: Download and install Subfinder
-  shell: |
-    curl -s https://api.github.com/repos/projectdiscovery/subfinder/releases/latest \
-    | grep "browser_download_url.*linux_amd64" \
-    | cut -d '"' -f 4 \
-    | wget -qi - -O subfinder.zip
-    unzip -o subfinder.zip
-    chmod +x subfinder
-    mv subfinder /usr/local/bin/
-  args:
-    chdir: /opt/osint
+    - name: Check installed version of Subfinder
+      command: subfinder -v
+      register: subfinder_version
+      changed_when: false
+
+    - name: Display Subfinder version
+      debug:
+        var: subfinder_version.stdout
